@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>💌 군사실무 디지털 롤링페이퍼</title>
+  <meta name="description" content="함께 땀 흘리고 동고동락한 전우·동기들에게 따뜻한 응원과 마음을 남겨주세요!" />
+
+  <!-- 카카오톡/SNS 공유 미리보기 (Open Graph) 메타태그 -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="💌 군사실무 디지털 롤링페이퍼" />
+  <meta property="og:description" content="함께한 시간, 따뜻한 응원과 마음을 남겨주세요!" />
+  <meta property="og:locale" content="ko_KR" />
+  
+  <!-- Pretendard 웹 폰트 -->
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Supabase JS Client v2 CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
+  <!-- 폭죽 효과(confetti) CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <!-- QR 코드 생성 라이브러리 CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+  
+  <!-- FontAwesome 아이콘 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="bg-gradient-to-br from-amber-50 via-slate-50 to-orange-50 min-h-screen font-sans text-gray-800 antialiased selection:bg-amber-200">
+
+  <!-- 환경설정 알림 배너 (Supabase 키가 설정되지 않았을 때 표시됨) -->
+  <div id="config-banner" class="hidden bg-amber-500 text-white px-4 py-3 shadow-md sticky top-0 z-50">
+    <div class="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-sm">
+      <div class="flex items-center gap-2">
+        <i class="fa-solid fa-triangle-exclamation text-lg animate-bounce"></i>
+        <span><strong>Supabase 연결 설정이 필요합니다!</strong> <code class="bg-amber-600 px-2 py-0.5 rounded text-xs">app.js</code>에 프로젝트 정보를 입력해주세요.</span>
+      </div>
+      <button onclick="openConfigModal()" class="bg-white text-amber-700 font-bold px-3 py-1.5 rounded-lg text-xs hover:bg-amber-50 transition shadow">
+        연결 설정하기
+      </button>
+    </div>
+  </div>
+
+  <!-- 상단 헤더 섹션 -->
+  <header class="max-w-5xl mx-auto pt-10 pb-6 px-4 text-center">
+    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-semibold tracking-wide uppercase mb-3 shadow-sm">
+      <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+      누구나 작성 가능한 열린 롤링페이퍼
+    </div>
+    
+    <h1 class="text-3xl sm:text-5xl font-black text-slate-800 tracking-tight leading-tight mb-3">
+      🎖️ 군사실무 디지털 롤링페이퍼
+    </h1>
+    
+    <p class="text-slate-600 text-sm sm:text-base max-w-xl mx-auto leading-relaxed">
+      함께 땀 흘리고 동고동락한 전우·동기들에게<br class="hidden sm:inline" />
+      따뜻한 응원과 진심 어린 한마디를 남겨주세요!
+    </p>
+
+    <!-- 통계 및 빠른 버튼 바 -->
+    <div class="mt-8 flex flex-wrap items-center justify-center gap-3">
+      <div class="bg-white/80 backdrop-blur border border-slate-200/80 px-4 py-2 rounded-2xl shadow-sm flex items-center gap-2">
+        <i class="fa-solid fa-envelope-open-text text-amber-500"></i>
+        <span class="text-xs text-slate-500">도착한 편지</span>
+        <span id="message-count" class="font-bold text-slate-800 text-sm">0개</span>
+      </div>
+
+      <button id="btn-open-modal" class="bg-slate-900 hover:bg-slate-800 text-white font-bold px-5 py-2.5 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-0.5 flex items-center gap-2 text-sm">
+        <i class="fa-solid fa-pen-nib text-amber-400"></i>
+        <span>메모 남기기</span>
+      </button>
+
+      <button id="btn-refresh" title="새로고침" class="bg-white/80 hover:bg-white text-slate-700 border border-slate-200 px-3.5 py-2.5 rounded-2xl shadow-sm transition hover:rotate-180 duration-500">
+        <i class="fa-solid fa-rotate-right"></i>
+      </button>
+
+      <button id="btn-share" onclick="openShareModal()" title="공유하기 및 QR코드" class="bg-white/80 hover:bg-white text-slate-700 border border-slate-200 px-3.5 py-2.5 rounded-2xl shadow-sm transition hover:scale-105 flex items-center gap-1.5 text-xs font-semibold">
+        <i class="fa-solid fa-qrcode text-amber-500"></i>
+        <span>공유 / QR</span>
+      </button>
+    </div>
+
+    <!-- 검색창 -->
+    <div class="mt-6 max-w-md mx-auto relative">
+      <i class="fa-solid fa-magnifying-glass absolute left-4 top-3 text-slate-400 text-sm"></i>
+      <input 
+        id="search-input"
+        type="text" 
+        placeholder="작성자 또는 내용으로 검색..." 
+        class="w-full pl-10 pr-4 py-2 bg-white/70 backdrop-blur border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 focus:bg-white transition"
+      />
+    </div>
+  </header>
+
+  <!-- 메인 롤링페이퍼 보드 (포스트잇 그리드) -->
+  <main class="max-w-6xl mx-auto px-4 pb-24">
+    <!-- 로딩 스피너 -->
+    <div id="loading-spinner" class="flex flex-col items-center justify-center py-20 text-slate-400">
+      <i class="fa-solid fa-spinner fa-spin text-3xl mb-3 text-amber-500"></i>
+      <p class="text-sm">따뜻한 마음들을 불러오는 중입니다...</p>
+    </div>
+
+    <!-- 빈 상태 안내 (메모가 없을 때) -->
+    <div id="empty-state" class="hidden text-center py-20 bg-white/50 backdrop-blur rounded-3xl border-2 border-dashed border-slate-200 p-8 max-w-md mx-auto">
+      <div class="text-5xl mb-4">📮</div>
+      <h3 class="text-lg font-bold text-slate-700 mb-1">아직 남겨진 메모가 없어요!</h3>
+      <p class="text-slate-500 text-xs sm:text-sm mb-5">첫 번째 메모의 주인공이 되어 따뜻한 인사를 건네보세요.</p>
+      <button onclick="document.getElementById('btn-open-modal').click()" class="bg-amber-500 hover:bg-amber-600 text-white font-bold px-4 py-2 rounded-xl text-xs sm:text-sm shadow">
+        첫 메모 남기기
+      </button>
+    </div>
+
+    <!-- 메시지 카드 그리드 -->
+    <div id="messages-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+      <!-- 자바스크립트로 포스트잇 카드들이 여기에 동적으로 렌더링됩니다 -->
+    </div>
+  </main>
+
+  <!-- 하단 플로팅 글쓰기 버튼 (모바일 편의성) -->
+  <div class="fixed bottom-6 right-6 z-40 sm:hidden">
+    <button onclick="document.getElementById('btn-open-modal').click()" class="bg-amber-500 hover:bg-amber-600 text-white w-14 h-14 rounded-full shadow-2xl flex items-center justify-center text-xl transition transform active:scale-95">
+      <i class="fa-solid fa-pencil"></i>
+    </button>
+  </div>
+
+  <!-- 푸터 -->
+  <footer class="text-center py-6 text-xs text-slate-400 border-t border-slate-200/50">
+    <p>군사실무 디지털 롤링페이퍼 • Made with Supabase & Vercel</p>
+  </footer>
+
+  <!-- =============================== -->
+  <!-- 메모 작성 모달 팝업 -->
+  <!-- =============================== -->
+  <div id="write-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-7 shadow-2xl relative transform transition-all animate-scaleUp">
+      <!-- 닫기 버튼 -->
+      <button id="btn-close-modal" class="absolute top-5 right-5 text-slate-400 hover:text-slate-600 text-lg w-8 h-8 rounded-full hover:bg-slate-100 flex items-center justify-center transition">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <div class="flex items-center gap-2 mb-4">
+        <span class="text-2xl">✍️</span>
+        <h2 class="text-xl font-bold text-slate-800">새 롤링페이퍼 남기기</h2>
+      </div>
+
+      <form id="write-form" class="space-y-4">
+        <!-- 1. 작성자 & 소속 -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">작성자 성명/닉네임 <span class="text-red-500">*</span></label>
+            <input 
+              id="input-author" 
+              type="text" 
+              maxlength="20" 
+              required 
+              placeholder="예: 홍길동, 3소대 막내" 
+              class="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 transition"
+            />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">소속 / 계급 (선택)</label>
+            <input 
+              id="input-affiliation" 
+              type="text" 
+              maxlength="20" 
+              placeholder="예: 2소대, 19기 동기, 분대장" 
+              class="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 transition"
+            />
+          </div>
+        </div>
+
+        <!-- 2. 포스트잇 배경색 선택 -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1.5">포스트잇 색상 선택</label>
+          <div class="flex items-center gap-2">
+            <button type="button" data-color="yellow" class="color-btn w-8 h-8 rounded-full bg-amber-100 border-2 border-amber-400 ring-2 ring-amber-400/40 transition hover:scale-110"></button>
+            <button type="button" data-color="pink" class="color-btn w-8 h-8 rounded-full bg-rose-100 border-2 border-rose-300 transition hover:scale-110"></button>
+            <button type="button" data-color="green" class="color-btn w-8 h-8 rounded-full bg-emerald-100 border-2 border-emerald-300 transition hover:scale-110"></button>
+            <button type="button" data-color="blue" class="color-btn w-8 h-8 rounded-full bg-sky-100 border-2 border-sky-300 transition hover:scale-110"></button>
+            <button type="button" data-color="purple" class="color-btn w-8 h-8 rounded-full bg-purple-100 border-2 border-purple-300 transition hover:scale-110"></button>
+            <button type="button" data-color="orange" class="color-btn w-8 h-8 rounded-full bg-orange-100 border-2 border-orange-300 transition hover:scale-110"></button>
+          </div>
+          <input type="hidden" id="input-color" value="yellow" />
+        </div>
+
+        <!-- 3. 스티커 / 이모지 선택 -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1.5">스티커 부착</label>
+          <div class="flex flex-wrap gap-2">
+            <button type="button" data-emoji="🎖️" class="emoji-btn px-2.5 py-1 rounded-xl bg-slate-100 hover:bg-slate-200 text-lg border border-slate-300 ring-2 ring-slate-400">🎖️</button>
+            <button type="button" data-emoji="🫡" class="emoji-btn px-2.5 py-1 rounded-xl bg-slate-100 hover:bg-slate-200 text-lg border border-slate-200">🫡</button>
+            <button type="button" data-emoji="💌" class="emoji-btn px-2.5 py-1 rounded-xl bg-slate-100 hover:bg-slate-200 text-lg border border-slate-200">💌</button>
+            <button type="button" data-emoji="🍀" class="emoji-btn px-2.5 py-1 rounded-xl bg-slate-100 hover:bg-slate-200 text-lg border border-slate-200">🍀</button>
+            <button type="button" data-emoji="💪" class="emoji-btn px-2.5 py-1 rounded-xl bg-slate-100 hover:bg-slate-200 text-lg border border-slate-200">💪</button>
+            <button type="button" data-emoji="🎉" class="emoji-btn px-2.5 py-1 rounded-xl bg-slate-100 hover:bg-slate-200 text-lg border border-slate-200">🎉</button>
+            <button type="button" data-emoji="⭐" class="emoji-btn px-2.5 py-1 rounded-xl bg-slate-100 hover:bg-slate-200 text-lg border border-slate-200">⭐</button>
+            <button type="button" data-emoji="☕" class="emoji-btn px-2.5 py-1 rounded-xl bg-slate-100 hover:bg-slate-200 text-lg border border-slate-200">☕</button>
+          </div>
+          <input type="hidden" id="input-emoji" value="🎖️" />
+        </div>
+
+        <!-- 4. 내용 -->
+        <div>
+          <div class="flex justify-between items-center mb-1">
+            <label class="block text-xs font-semibold text-slate-600">남길 마음 / 메시지 <span class="text-red-500">*</span></label>
+            <span id="char-count" class="text-[11px] text-slate-400">0 / 500자</span>
+          </div>
+          <textarea 
+            id="input-content" 
+            required 
+            rows="5" 
+            maxlength="500" 
+            placeholder="따뜻한 인사, 고마웠던 순간, 앞으로의 응원 메시지를 자유롭게 작성해주세요..." 
+            class="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 transition resize-none leading-relaxed"
+          ></textarea>
+        </div>
+
+        <!-- 제출 버튼 -->
+        <div class="pt-2">
+          <button 
+            id="btn-submit" 
+            type="submit" 
+            class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 rounded-xl shadow-lg hover:shadow-xl transition flex items-center justify-center gap-2 text-sm"
+          >
+            <span>마음 붙이기 (등록)</span>
+            <i class="fa-solid fa-paper-plane text-xs text-amber-400"></i>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- =============================== -->
+  <!-- 브라우저에서 바로 Supabase 키 설정하는 도우미 모달 -->
+  <!-- =============================== -->
+  <div id="config-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl relative">
+      <button onclick="closeConfigModal()" class="absolute top-5 right-5 text-slate-400 hover:text-slate-600 text-lg">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <div class="flex items-center gap-2 mb-3">
+        <span class="text-2xl">⚙️</span>
+        <h3 class="text-lg font-bold text-slate-800">Supabase 연결 도우미</h3>
+      </div>
+      
+      <p class="text-xs text-slate-500 mb-4 leading-relaxed">
+        Supabase 대시보드에서 발급받은 <strong>Project URL</strong>과 <strong>anon public API Key</strong>를 입력하면 바로 연결됩니다! (이 정보는 안전하게 보관됩니다)
+      </p>
+
+      <form id="config-form" class="space-y-3">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Project URL</label>
+          <input 
+            id="cfg-url" 
+            type="url" 
+            required 
+            placeholder="https://xyzabcdefg.supabase.co" 
+            class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-mono focus:outline-none focus:ring-2 focus:ring-amber-400"
+          />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Anon Public Key</label>
+          <input 
+            id="cfg-key" 
+            type="text" 
+            required 
+            placeholder="eyJhbGciOiJIUzI1NiIsIn..." 
+            class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-mono focus:outline-none focus:ring-2 focus:ring-amber-400"
+          />
+        </div>
+        <button type="submit" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-2.5 rounded-xl text-xs shadow transition">
+          연결 저장 및 새로고침
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- =============================== -->
+  <!-- QR 코드 및 링크 공유 모달 -->
+  <!-- =============================== -->
+  <div id="share-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl text-center relative animate-scaleUp">
+      <button onclick="closeShareModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 text-lg">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <span class="text-3xl">📱</span>
+      <h3 class="text-lg font-bold text-slate-800 mt-2 mb-1">모바일로 참여하기</h3>
+      <p class="text-xs text-slate-500 mb-4">카메라로 QR코드를 스캔하면 바로 접속됩니다.</p>
+
+      <div class="bg-white p-3 border border-slate-200 rounded-2xl shadow-inner inline-block mx-auto mb-4">
+        <canvas id="qr-canvas"></canvas>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <input id="share-url-input" type="text" readonly class="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-600 truncate font-mono select-all" />
+        <button id="btn-copy-link" onclick="copyCurrentUrl()" class="shrink-0 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold px-3 py-2 rounded-xl transition">
+          복사
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
+
